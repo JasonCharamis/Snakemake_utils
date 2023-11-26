@@ -20,8 +20,8 @@ def find_repository_name(start_dir="."):
     # Of course, if a different path is provided with the --snakefile argument, this will be used by Snakemake
     return None  # Return None if no Snakefile or snakefile is found
 
-def find_workflow_path():
+def find_workflow_path(dir="."):
     home_directory = os.path.expanduser("~")
-    repository_name = find_repository_name(start_dir=".")
+    repository_name = find_repository_name(dir)
     result = subprocess.run(["find", home_directory, "-type", "d", "-name", repository_name], capture_output=True, text=True)
     return result.stdout
