@@ -2,8 +2,19 @@ import os
 import re
 import subprocess
 
+
+def is_docker() -> bool:
+    with open('/proc/self/cgroup', 'r') as procfile:
+        result = subprocess.run(["grep", "container"], stdin=procfile, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+        if result.returncode == 0:
+            return True
+        else:
+            return False
+
+    return False
+
 def find_repository_name(start_dir="."):
-    is_docker = os.environ.get("DOCKER_CONTAINER") == "TRUE"
     current_dir = os.path.abspath(start_dir)
 
     while current_dir != '/':  # Stop searching at the root directory
@@ -11,9 +22,9 @@ def find_repository_name(start_dir="."):
             paths = [path for path in files if re.search("Snakefile|snakefile", path)]
             if paths:
                 if is_docker == "TRUE":  # If the Snakefile is run inside a Docker container, then there will be only one Snakefile, and therefore we can automatically identify it
-                    return re.sub("/workflow/", "", os.path.relpath(root, start=start_dir))
+                    return re.sub("/workflow/|\.", "", os.path.relpath(root, start_dir))
                 else:  # If the Snakefile is not running inside a Docker container, then get the relative path of the Snakefile from pwd
-                    return os.path(root, start=start_dir)
+                    return re.sub("/workflow/|\.", "", os.path.join(root, start_dir) )
 
         current_dir = os.path.dirname(current_dir)
 
